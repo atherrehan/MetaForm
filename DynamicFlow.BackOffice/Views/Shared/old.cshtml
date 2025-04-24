@@ -1,0 +1,132 @@
+﻿@* <!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>@ViewData["Title"] - DynamicFlow.BackOffice</title>
+	<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+	<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+	<!-- Header -->
+	<header class="navbar-header" style="background-color:#07557e;height:100px;">
+		<div b-tqfffzkel5="" class="navbar-header" style="background-color:#07557e; height:100px">
+			<img src="~/SME-logo.png" width="250" alt="SME Logo" style="margin-right:250px">
+
+			<img src="~/2040Logo.png" width="120" alt="2040 Logo" style="float:right; margin-right:15px;">
+		</div>
+		<div b-tqfffzkel5="" class="navbar-header" style="background-color:#a58d63; height:7px"></div>	
+		<div b-tqfffzkel5="" class="navbar-header">
+			<div b-tqfffzkel5="" class="d-flex">
+				<div b-tqfffzkel5="" class="navbar-brand-box">
+					<a href="/Admin" class="logo logo-dark">
+						<span b-tqfffzkel5="" class="logo-sm">
+							<img src="~/logo.svg" alt="" height="22">
+						</span>
+						<span b-tqfffzkel5="" class="logo-lg">
+							<img src="~/2040logo.png" />
+							<img src="~/logo-dark.png" alt="" height="17">
+						</span>
+					</a>
+
+					<a href="/Admin" class="logo logo-light">
+						<span b-tqfffzkel5="" class="logo-sm">
+							<img src="~/logo-light.svg" alt="" height="22">
+						</span>
+						<span b-tqfffzkel5="" class="logo-lg">
+							<img src="~/logo-light.png" alt="" height="38">
+						</span>
+
+					</a>
+				</div>
+
+				<button b-tqfffzkel5="" type="button" class="btn btn-sm px-3 font-size-16 header-item waves-effect" id="vertical-menu-btn">
+					<i b-tqfffzkel5="" class="fa fa-fw fa-bars"></i>
+				</button>
+
+			</div>
+			<div b-tqfffzkel5="" class="d-flex">
+				<a href="/Admin/Logout">
+					<i b-tqfffzkel5="" class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i><font style="vertical-align: inherit;">
+						<font style="vertical-align: inherit;">
+							Logout
+						</font>
+					</font>
+				</a>
+			</div>
+		</div>
+		<div b-tqfffzkel5="" class="navbar-header">
+			<div b-tqfffzkel5="" class="d-flex">
+				<div b-tqfffzkel5="" class="navbar-brand-box">
+					<a href="/Admin" class="logo logo-dark">
+						<span b-tqfffzkel5="" class="logo-sm">
+							<img src="/assets/images/logo.svg" alt="" height="22">
+						</span>
+						<span b-tqfffzkel5="" class="logo-lg">
+							<img src="/assets/images/logo-dark.png" alt="" height="17">
+						</span>
+					</a>
+
+					<a href="/Admin" class="logo logo-light">
+						<span b-tqfffzkel5="" class="logo-sm">
+							<img src="/assets/images/logo-light.svg" alt="" height="22">
+						</span>
+						<span b-tqfffzkel5="" class="logo-lg">
+							<img src="/assets/images/logo-light.png" alt="" height="38">
+						</span>
+
+					</a>
+				</div>
+
+				<button b-tqfffzkel5="" type="button" class="btn btn-sm px-3 font-size-16 header-item waves-effect" id="vertical-menu-btn">
+					<i b-tqfffzkel5="" class="fa fa-fw fa-bars"></i>
+				</button>
+
+			</div>
+			<div b-tqfffzkel5="" class="d-flex">
+				<a href="/Admin/Logout">
+					<i b-tqfffzkel5="" class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+					Logout
+				</a>
+			</div>
+		</div>
+
+
+	</header>
+
+	<!-- Main Layout -->
+	<div class="d-flex">
+
+		<!-- Left Menu (Static) -->
+		<nav class="bg-light border-end" style="width: 250px; height: 100vh;margin-top:7px; background-color:#07557e !important">
+
+			<ul class="list-group mm-show p-3">
+				<li class="list-group-item" style="background-color: #07557e;border-color: #07557e; ">
+					<a class="list-group-item list-group-item-action" style="background-color: #07557e;border-color: #07557e; color:#ffffff" href="/Flow/CreateFlow" data-url="/Flow/CreateFlow">Create Flow</a>
+				</li>
+				<li class="list-group-item" style="background-color: #07557e;border-color: #07557e;">
+					<a class="list-group-item list-group-item-action" style="background-color: #07557e;border-color: #07557e; color:#ffffff" href="/Flow/SetupFlow" data-url="/Flow/SetupFlow">Setup Flow</a>
+				</li>
+			</ul>
+		</nav>
+
+		<!-- Main Content Area -->
+		<div class="container-fluid p-3" style="flex-grow: 1; margin-right:auto">
+			<div id="main-content">
+				@RenderBody() <!-- This is where the view content will be injected -->
+			</div>
+		</div>
+	</div>
+
+	<!-- Footer (Static) -->
+	<footer class="footer border-top text-center p-2 bg-light">
+		© 2025 - XYZ Corporation
+	</footer>
+
+	@await RenderSectionAsync("Scripts", required: false)
+	@section Scripts {
+		<partial name="_ValidationScriptsPartial" />
+	}
+</body>
+</html>
+ *@

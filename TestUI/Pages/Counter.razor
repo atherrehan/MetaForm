@@ -1,0 +1,62 @@
+﻿@page "/counter"
+@using SME.DynamicFlow.UI
+
+@* @using DynamicFlow.Models.Generic
+@using SME.DynamicFlow.UI *@
+
+<PageTitle>Counter</PageTitle>
+
+<h1>Counter</h1>
+
+<p role="status">Current count: @currentCount</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+
+<button class="btn btn-primary" @onclick="OpenDialogBranch">Branch</button>
+
+
+<DynamicFlowComponent FlowTitle="Assign Branch" FlowFor="Assign Branch" IsVisible="@BranchDialogVisible" IsVisibleSave="@IsSaveButtonVisible" IsVisibleChanged="OnDialogVisibilityChanged" PrepropertyList="properties"> </DynamicFlowComponent>
+
+@code {
+
+	public List<FlowParameter>? properties { get; set; }
+
+	private bool ProfileDialogVisible = false;
+	private bool IsSaveButtonVisible = true;
+
+	protected override void OnInitialized()
+	{
+		properties = new List<FlowParameter>
+		{
+			new FlowParameter { Title = "UserId", Value = "DynamicFlow" },
+			new FlowParameter { Title = "LanguageId", Value = "1" },
+		};
+	}
+
+	private void OpenDialogProfile()
+	{
+		ProfileDialogVisible = true;
+	}
+
+	private void OnDialogVisibilityChanged(bool isVisible)
+	{
+		ProfileDialogVisible = isVisible;
+		BranchDialogVisible = isVisible;
+	}
+
+	private bool BranchDialogVisible = false;
+
+	private void OpenDialogBranch()
+	{
+		BranchDialogVisible = true;
+	}
+}
+
+@code {
+	private int currentCount = 0;
+
+	private void IncrementCount()
+	{
+		currentCount++;
+	}
+}

@@ -1,0 +1,175 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>@ViewData["Title"] - test</title>
+	<script type="importmap"></script>
+	<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css">
+	<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+	@* <link rel="stylesheet" href="~/test.styles.css" asp-append-version="true" /> *@
+	<style>
+		/* Page layout with flex */
+		.page-container {
+			display: flex;
+			flex-direction: column;
+			min-height: 100vh;
+		}
+
+		/* First Header (Spans full width) */
+		.top-header {
+			background-color: #07557e;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 10px 20px;
+			width: 100%;
+			height: 60px; /* Set explicit height */
+		}
+
+			.top-header img {
+				height: 50px;
+			}
+
+		/* Add the separator line */
+		.separator-line {
+			width: 100%;
+			height: 5px;
+			background-color: #a58d63; /* Change color if needed */
+		}
+
+		/* Main content section (Sidebar + Right Content) */
+		.main-content {
+			display: flex;
+			flex: 1; /* Ensures it fills remaining space */
+		}
+
+		/* Sidebar styling (Starts below first header) */
+		.sidebar {
+			width: 200px;
+			background-color: #f8f9fa;
+			padding-top: 20px;
+			flex-shrink: 0;
+		}
+
+			.sidebar a {
+				display: block;
+				padding: 10px;
+				color: #333;
+				text-decoration: none;
+			}
+
+				.sidebar a:hover {
+					background-color: #ddd;
+				}
+
+		/* Right Section (Content + Logout Header + Footer) */
+		.content-area {
+			display: flex;
+			flex-direction: column;
+			flex-grow: 1;
+			min-height: calc(100vh - 60px); /* Adjust for header height */
+		}
+
+		/* Content wrapper adjusts for sidebar */
+		.content-wrapper {
+			flex-grow: 1;
+			display: flex;
+			flex-direction: column;
+			padding: 20px;
+		}
+
+		/* Second Header (Logout) */
+		.secondary-header {
+			background-color: #e9ecef;
+			padding: 10px;
+			text-align: right;
+			width: 100%;
+		}
+
+		/* Footer stays at the bottom */
+		.footer {
+			background-color: #f1f1f1;
+			padding: 10px;
+			text-align: center;
+			border-top: 1px solid #ddd;
+			width: 100%;
+			margin-top: auto; /* Push footer down */
+		}
+
+		.top-header img {
+			max-height: 60px; /* Prevents image from overflowing */
+			display: inline-block;
+			vertical-align: middle;
+		}
+
+		.top-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center; /* Aligns images vertically in the middle */
+			height: 60px; /* Ensure the height is defined */
+			width: 100%;
+		}
+
+			.top-header img {
+				max-width: 100%; /* Makes sure the image scales */
+				height: auto; /* Keeps aspect ratio */
+				max-height: 50px; /* Limits height to fit the header */
+			}
+	</style>
+</head>
+<body>
+	<div class="page-container">
+		<!-- First Header -->
+		<header class="top-header">
+			<img src="~/SME-logo.png" alt="Left Logo"> <!-- Left Image -->
+			<img src="~/2040Logo.png" width="120" alt="Right Logo"> <!-- Right Image -->
+		</header>
+
+		<!-- Separator Line (Just after the first header) -->
+		<div class="separator-line"></div>
+
+		<!-- Main Content Layout -->
+		<div class="main-content">
+			<!-- Sidebar (Left Pane) -->
+			<div class="sidebar" style="background-color:#07557e; border-color:#07557e">
+				<ul class="list-group mm-show p-3">
+					<li class="list-group-item" style="background-color: #07557e;border-color: #07557e; ">
+						<a class="list-group-item list-group-item-action" style="background-color: #07557e;border-color: #07557e; color:#ffffff" href="/Flow/CreateFlow" data-url="/Flow/CreateFlow">Create Flow</a>
+					</li>
+					<li class="list-group-item" style="background-color: #07557e;border-color: #07557e;">
+						<a class="list-group-item list-group-item-action" style="background-color: #07557e;border-color: #07557e; color:#ffffff" href="/Flow/SetupFlow" data-url="/Flow/SetupFlow">Setup Flow</a>
+					</li>
+				</ul>
+			</div>
+
+			<!-- Right Section (Content + Logout Header + Footer) -->
+			<div class="content-area">
+				<div class="secondary-header">
+					<a class="d-flex align-items-center text-decoration-none" style="float:right" asp-area="" asp-controller="Account" asp-action="Login">
+						<i class="bi bi-box-arrow-right me-2" style="font-size: 1.2rem;"></i> <!-- Logout Icon -->
+						Logout
+					</a>
+				</div>
+
+				<div class="content-wrapper">
+					<main role="main" class="pb-3">
+						@RenderBody()
+					</main>
+				</div>
+
+				<!-- Footer (Now properly positioned) -->
+				<footer class="footer" style="background-color:#e9ecef">
+					© SME Oman 2025 - SME.gov.om
+				</footer>
+			</div>
+		</div>
+	</div>
+
+	<script src="~/lib/jquery/dist/jquery.min.js"></script>
+	<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="~/js/site.js" asp-append-version="true"></script>
+	@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

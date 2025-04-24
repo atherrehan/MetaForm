@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <!--<Title>DynamicFlowBlazorClient</Title>
+    <Version>1.6.4</Version>-->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="HttpClient\**" />
+    <Compile Remove="Repository\**" />
+    <EmbeddedResource Remove="HttpClient\**" />
+    <EmbeddedResource Remove="Repository\**" />
+    <None Remove="HttpClient\**" />
+    <None Remove="Repository\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.35" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.1" />
+    <PackageReference Include="Serilog" Version="4.2.0" />
+  </ItemGroup>
+
+  <Import Project="..\DynamicFlow.Models\DynamicFlow.Models.projitems" Label="Shared" />
+
+</Project>

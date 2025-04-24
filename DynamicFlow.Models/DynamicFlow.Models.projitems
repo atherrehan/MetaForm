@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>0484b971-18c2-4100-9be6-18fd42cf7615</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>DynamicFlow.Models</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)DTOs\DynamicFlowComponentDto.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Enums\RequestType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Enums\UrlCacheEnum.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Exceptions\NullModelException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Generic\ApiHeaders.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Generic\ApiResponse.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Generic\ApiUrl.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Generic\CacheConfigurations.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Generic\DatabaseConnection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Generic\ExceptionResponse.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Generic\GenericModels.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Generic\LogApiRequestResponse.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Generic\Security.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\ExtensionMethods.cs" />
+  </ItemGroup>
+</Project>

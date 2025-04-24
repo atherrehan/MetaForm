@@ -1,0 +1,71 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35919.96 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "API", "API", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BackOffice", "BackOffice", "{33CEE757-0FE5-4F63-BF06-FA40865D9C79}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Blazor", "Blazor", "{A4BB6B1D-65EB-4B71-A08D-3EE29F5174EE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{03A0D5D7-79C9-4E97-9760-32C98CC6ADC7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamicFlow.API", "DynamicFlow.API\DynamicFlow.API.csproj", "{1FF43FA5-1D28-9320-2B51-A2918991C45F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamicFlow.BackOffice", "DynamicFlow.BackOffice\DynamicFlow.BackOffice.csproj", "{B4AC4952-B43F-DBCC-D9D6-E7D2B11D97FB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SME.DynamicFlow.TestUI", "SME.DynamicFlow.TestUI\SME.DynamicFlow.TestUI.csproj", "{D9B708B0-6E44-798C-0337-AA46B3E37936}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SME.DynamicFlow.UI", "SME.DynamicFlow.UI\SME.DynamicFlow.UI.csproj", "{3BDED1C9-3269-81C6-3995-0022699BA8C3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamicFlow.Service.Common", "DynamicFlow.Service.Shared\DynamicFlow.Service.Common.csproj", "{C215B195-52C8-4A64-0E18-D0810B1B986A}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "DynamicFlow.Models", "DynamicFlow.Models\DynamicFlow.Models.shproj", "{0484B971-18C2-4100-9BE6-18FD42CF7615}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1FF43FA5-1D28-9320-2B51-A2918991C45F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1FF43FA5-1D28-9320-2B51-A2918991C45F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1FF43FA5-1D28-9320-2B51-A2918991C45F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1FF43FA5-1D28-9320-2B51-A2918991C45F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4AC4952-B43F-DBCC-D9D6-E7D2B11D97FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4AC4952-B43F-DBCC-D9D6-E7D2B11D97FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4AC4952-B43F-DBCC-D9D6-E7D2B11D97FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4AC4952-B43F-DBCC-D9D6-E7D2B11D97FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9B708B0-6E44-798C-0337-AA46B3E37936}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9B708B0-6E44-798C-0337-AA46B3E37936}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9B708B0-6E44-798C-0337-AA46B3E37936}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9B708B0-6E44-798C-0337-AA46B3E37936}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3BDED1C9-3269-81C6-3995-0022699BA8C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3BDED1C9-3269-81C6-3995-0022699BA8C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3BDED1C9-3269-81C6-3995-0022699BA8C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3BDED1C9-3269-81C6-3995-0022699BA8C3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C215B195-52C8-4A64-0E18-D0810B1B986A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C215B195-52C8-4A64-0E18-D0810B1B986A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C215B195-52C8-4A64-0E18-D0810B1B986A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C215B195-52C8-4A64-0E18-D0810B1B986A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{1FF43FA5-1D28-9320-2B51-A2918991C45F} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{B4AC4952-B43F-DBCC-D9D6-E7D2B11D97FB} = {33CEE757-0FE5-4F63-BF06-FA40865D9C79}
+		{D9B708B0-6E44-798C-0337-AA46B3E37936} = {A4BB6B1D-65EB-4B71-A08D-3EE29F5174EE}
+		{3BDED1C9-3269-81C6-3995-0022699BA8C3} = {A4BB6B1D-65EB-4B71-A08D-3EE29F5174EE}
+		{C215B195-52C8-4A64-0E18-D0810B1B986A} = {03A0D5D7-79C9-4E97-9760-32C98CC6ADC7}
+		{0484B971-18C2-4100-9BE6-18FD42CF7615} = {03A0D5D7-79C9-4E97-9760-32C98CC6ADC7}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E204136B-C77A-4B5A-91C8-6C6AA9DFB296}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		DynamicFlow.Models\DynamicFlow.Models.projitems*{0484b971-18c2-4100-9be6-18fd42cf7615}*SharedItemsImports = 13
+		DynamicFlow.Models\DynamicFlow.Models.projitems*{1ff43fa5-1d28-9320-2b51-a2918991c45f}*SharedItemsImports = 5
+	EndGlobalSection
+EndGlobal

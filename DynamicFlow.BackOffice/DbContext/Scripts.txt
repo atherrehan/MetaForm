@@ -1,0 +1,278 @@
+﻿
+create table DbConnection
+(
+Id tinyint primary key identity(10,10),
+Title varchar(100) not null unique,
+[Source] varchar(100) not null,
+[Catalog] varchar(100) not null,
+[User] varchar(100) not null,
+[Password] varchar(100) not null,
+ConnectionString varchar(1000) not null,
+Remarks varchar(100),
+Position smallint not null unique,
+CreatedBy smallint default(100) not null,
+CreatedDate datetime not null default(getdate()),
+ModifiedBy smallint default(100) not null,
+ModifiedDate datetime not null default(getdate()),
+IsDeleted bit not null default(0)
+)
+go
+create table FlowScript
+(
+Id smallint primary key identity(10,1),
+Title varchar(500) not null unique,
+Position smallint not null unique,
+CreatedBy smallint default(100) not null,
+CreatedDate datetime not null default(getdate()),
+ModifiedBy smallint default(100) not null,
+ModifiedDate datetime not null default(getdate()),
+IsDeleted bit not null default(0)
+)
+go
+create table ButtonType
+(
+Id tinyint primary key identity(10,10),
+Title varchar(100) not null unique,
+Color varchar(50) not null,
+Position smallint not null unique,
+CreatedBy smallint default(100) not null,
+CreatedDate datetime not null default(getdate()),
+ModifiedBy smallint default(100) not null,
+ModifiedDate datetime not null default(getdate()),
+IsDeleted bit not null default(0)
+)
+go
+create table DataType
+(
+Id tinyint primary key identity(10,10),
+Title varchar(100) not null unique,
+Position smallint not null unique,
+CreatedBy smallint default(100) not null,
+CreatedDate datetime not null default(getdate()),
+ModifiedBy smallint default(100) not null,
+ModifiedDate datetime not null default(getdate()),
+IsDeleted bit not null default(0)
+)
+go
+select * from EventType
+create table EventType
+(
+Id Tinyint primary key identity(10,10),
+Title varchar(100) not null unique,
+Position smallint not null unique,
+CreatedBy smallint default(100) not null,
+CreatedDate datetime not null default(getdate()),
+ModifiedBy smallint default(100) not null,
+ModifiedDate datetime not null default(getdate()),
+IsDeleted bit not null default(0)
+)
+go
+create table PropertyType
+(
+Id smallint primary key identity(10,10),
+Title varchar(100) not null unique,
+IsMultiline bit not null default(0),
+IsMultichoice bit not null default(0),
+Position smallint not null unique,
+CreatedBy smallint default(100) not null,
+CreatedDate datetime not null default(getdate()),
+ModifiedBy smallint default(100) not null,
+ModifiedDate datetime not null default(getdate()),
+IsDeleted bit not null default(0)
+)
+go
+create table PropertyScript
+(
+Id smallint primary key identity(10,1),
+Title varchar(500) not null unique,
+Position smallint not null unique,
+CreatedBy smallint default(100) not null,
+CreatedDate datetime not null default(getdate()),
+ModifiedBy smallint default(100) not null,
+ModifiedDate datetime not null default(getdate()),
+IsDeleted bit not null default(0)
+)
+go
+create table Flow
+(
+Id smallint primary key identity(10,1),
+DbConnectionId tinyint not null foreign key  references DbConnection(Id),
+FlowScriptId smallint not null foreign key  references FlowScript(Id),
+ButtonTypeId tinyint not null foreign key  references ButtonType(Id),
+Title varchar(500) not null unique,
+[Description] varchar(400),
+Position smallint not null unique,
+CreatedBy smallint default(100) not null,
+CreatedDate datetime not null default(getdate()),
+ModifiedBy smallint default(100) not null,
+ModifiedDate datetime not null default(getdate()),
+IsDeleted bit not null default(0)
+)
+go
+select * from property
+create  Table Property
+(
+Id smallint primary key identity(100,1),
+FlowId smallint not null foreign key references Flow(Id),
+PropertyTypeId smallint not null foreign key references PropertyType(Id),
+DataTypeId tinyint not null foreign key references DataType(Id),
+ScriptId smallint null foreign key references PropertyScript(Id),
+Title varchar(100) not null,
+Parameter varchar(100),
+ElementGroup int not null,
+Position smallint not null unique,
+ErrorMessage varchar(500),
+IsVisbible bit not null default(1),
+IsPreproperty bit not null default(0),
+IsRequired bit not null default(1),
+CreatedBy smallint default(100) not null,
+CreatedDate datetime not null default(getdate()),
+ModifiedBy smallint default(100) not null,
+ModifiedDate datetime not null default(getdate()),
+IsDeleted bit not null default(0)
+)
+go
+create table FlowProperty
+(
+Id smallint primary key identity(1000,1),
+FlowId smallint not null foreign key references Flow(Id),
+PropertyId smallint not null foreign key references Property(Id),
+CreatedBy smallint default(100) not null,
+CreatedDate datetime not null default(getdate()),
+ModifiedBy smallint default(100) not null,
+ModifiedDate datetime not null default(getdate()),
+IsDeleted bit not null default(0)
+)
+go
+--usp_get_create_flow
+create procedure usp_get_create_flow
+as
+begin
+select Id[Key],Title[Value] from DbConnection where IsDeleted=0
+select Id[Key],Title[Value] from FlowScript where IsDeleted=0
+select Id [Key],Title[Value] from ButtonType where IsDeleted=0
+end
+go
+--usp_get_create_property
+create procedure usp_get_create_property
+as
+begin
+select Id[Key],Title[Value] from PropertyType where IsDeleted=0
+select Id[Key],Title[Value] from DataType where IsDeleted=0
+select Id [Key],Title[Value] from EventType where IsDeleted=0
+select Id [Key],Title[Value] from Property where IsDeleted=0
+select Id [Key],Title[Value] from PropertyScript where IsDeleted=0
+end
+go
+
+--usp_get_setup_flow
+create procedure usp_get_setup_flow
+as
+begin
+select Id[Key],Title[Value] from Flow where IsDeleted=0 and Id not in(select FlowId from FlowProperty where IsDeleted=0)
+select Id [Key],Title[Value] from Property where IsDeleted=0
+end
+go
+--usp_create_flow'',0,0,0
+alter procedure usp_create_flow
+(
+@Title varchar(100)='',
+@ConnectionId tinyint=0,
+@ScriptId smallint=0,
+@ButtonId tinyint=0
+)
+as
+begin
+insert into Flow(Title,DbConnectionId,FlowScriptId,ButtonTypeId)values(@Title,@ConnectionId,@ScriptId,@ButtonId)
+select '00'ResponseCode,'Success'ResponseMessage
+end
+go
+--usp_create_property'',0,0,0
+create procedure usp_create_property
+(
+@PropertyTypeId int=0,
+@DataTypeId int=0,
+@Name varchar(255)='',
+@ControlText varchar(255)='',
+@Parameter varchar(255)='',
+@ErrorMessage varchar(255)='',
+@IsEvent bit=0,
+@EventId int=0,
+@IsParentProperty bit=0,
+@ParentPropertyId int=0,
+@IsPreload bit=0,
+@ScriptId int=0,
+@IsHidden bit=0,
+@IsPreproperty bit=0,
+@IsRequired bit=0
+)
+as
+begin
+
+INSERT INTO Property 
+(
+PropertyTypeId,
+DataTypeId,
+EventTypeId,
+ParentPropertyId,
+ScriptId,
+Title,
+ControlText,
+IsVisbible,
+IsPreload,
+IsPreproperty,
+IsRequired,
+Parameter,
+Position,
+ErrorMessage        
+)
+    VALUES (
+        @PropertyTypeId,
+        @DataTypeId,
+        @EventId,
+        @ParentPropertyId,
+        @ScriptId,
+        @Name,
+        @ControlText,
+        @IsHidden,
+        @IsPreload,
+        @IsPreproperty,
+        @IsRequired,
+        @Parameter,
+        @IsHidden,
+        @ErrorMessage
+    );
+select '00'ResponseCode,'Success'ResponseMessage
+end
+go
+--usp_setup_flow 0,''
+create procedure usp_setup_flow
+(
+@FlowId smallint=0,
+@Properties varchar(1000)=''
+)
+as
+begin
+insert into FlowProperty(FlowId,PropertyId)
+ SELECT @FlowId, TRIM(value) 
+    FROM STRING_SPLIT(@Properties, ',');
+	select '00'ResponseCode,'Success'ResponseMessage
+end
+
+go
+SET NOCOUNT ON; SELECT p.name [Key], p.name [Value] FROM sys.parameters p INNER JOIN sys.types t ON p.system_type_id = t.system_type_id AND p.user_type_id = t.user_type_id WHERE p.object_id = OBJECT_ID('{0}') ORDER BY p.parameter_id;
+go
+
+--usp_get_procedure 10
+create procedure usp_get_procedure
+(
+@Id bigint=0
+)
+as
+begin
+select Replace(Replace(Replace(Replace(connectionstring, '{0}', [source]), '{1}',[catalog]),'{2}', [user]), '{3}', [password])[Key],fs.Title [Value] from Flow f
+join FlowScript fs on fs.Id=f.FlowScriptId
+join DbConnection dc on dc.Id=f.DbConnectionId
+where f.IsDeleted=0 and fs.IsDeleted=0 and dc.IsDeleted=0 and f.DbConnectionId=@Id
+end
+go

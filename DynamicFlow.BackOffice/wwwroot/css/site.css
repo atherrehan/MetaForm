@@ -1,0 +1,107 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden; /* Disables scrolling */
+}
+
+.content-wrapper {
+    height: 100%; /* Ensures the content area fills the screen */
+    display: flex;
+    flex-direction: column;
+    overflow: auto; /* Allow scrolling only within the content area if needed */
+}
+
+footer {
+    margin-top: auto; /* Pushes footer to the bottom */
+}
+
+
+.container {
+    max-width: 100%;
+}
+
+/* Left Menu Styling */
+nav.bg-light {
+    width: 250px;
+    background-color: #f8f9fa;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
+}
+
+nav ul {
+    padding-left: 0;
+    list-style-type: none;
+}
+
+nav .nav-item {
+    margin-bottom: 10px; /* Adds space between menu items */
+}
+
+nav .nav-link {
+    display: block;
+    padding: 12px 15px;
+    background-color: #f8f9fa;
+    color: #495057;
+    border-radius: 5px; /* Rounded corners for each menu item */
+    text-decoration: none;
+    font-weight: 600;
+    transition: background-color 0.3s ease, padding-left 0.3s ease; /* Smooth hover transition */
+}
+
+nav .nav-item:hover .nav-link {
+    background-color: #007bff; /* Blue background on hover */
+    color: white; /* Change text color to white */
+}
+
+nav .nav-link.active {
+    background-color: #007bff; /* Highlight active menu item */
+    color: white; /* Text color for active item */
+}
+
+nav .nav-link:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25); /* Focus outline */
+}
+
+.col-md-3 {
+    margin-top: 8px;
+}
+
+.padtop {
+    padding-top: 20px;
+}
+
+.padtop2 {
+    padding-top: 5px;
+    margin-left: 50px;
+}
+/* Apply styles to all tables */
+table {
+    width: 100%; /* Ensure table takes full width */
+    border-collapse: collapse; /* Clean table borders */
+}
+/* Apply background color to the first row (thead) */
+    table thead tr {
+        background-color: #e6e6e6 !important; /* Force background color on header */
+    }
+
+    /* Apply background color to all table rows (tr) */
+    table tbody tr {
+        background-color: #f9f9f9 !important; /* Default background for table rows */
+    }
+
+        /* Apply background color when hovering over rows */
+        table tbody tr:hover {
+            background-color: #d1d1d1 !important; /* Slightly darker on hover */
+        }
+
+    /* Apply borders and styles to table cells */
+    table th, table td {
+        border: 1px solid #ddd !important; /* Force borders for all cells */
+        padding: 8px !important; /* Padding for consistency */
+        text-align: left; /* Align text to the left */
+    }
+
+    /* Optional: Ensure even rows get different background colors */
+    table tbody tr:nth-child(even) {
+        background-color: #f2f2f2 !important; /* Slight variation for even rows */
+    }

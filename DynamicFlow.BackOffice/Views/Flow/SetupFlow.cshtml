@@ -1,0 +1,292 @@
+﻿@using DynamicFlow.BackOffice.Models.Generic
+@{
+	ViewData["Title"] = "Setup Flow";
+	var flow = ViewData["Flow"] as List<KeyValueGeneric> ?? new List<KeyValueGeneric>();
+	var property = ViewData["Property"] as List<KeyValueGeneric> ?? new List<KeyValueGeneric>();
+}
+<div class="container d-flex justify-content-center align-items-center">
+	<div class="w-75">
+		<div class="form-group">
+			<label for="flowId"><strong>Flow</strong></label>
+			<select id="flowId" class="form-control">
+				<option value="0">-- Select--</option>
+				@foreach (var item in flow)
+				{
+					<option value=@item.Key>@item.Value</option>
+				}
+			</select>
+			<small id="flowErrorId" class="text-danger" style="display: none;">Flow is required.</small>
+
+		</div>
+
+		<div class="form-group" id="propertyId" style="display:none; margin-top:8px;">
+			<label><strong>Assign Properties</strong></label>
+			<div style="max-height: 1000px; overflow-y: auto;">
+
+				<table id="propertiesTableId" class="table table-bordered">
+					<thead class="thead-light">
+						<tr style="background-color: #e6e6e6">
+							<th scope="col">Parameter</th>
+							<th scope="col">Property</th>
+							<th scope="col">Text</th>
+							<th scope="col">Error Message</th>
+							<th scope="col">Preload Script</th>
+							<th scope="col">Is Preproperty</th>
+							<th scope="col">Is Required</th>
+							<th scope="col">Is Hidden</th>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+			</div>
+			<small id="propertyErrorId" class="text-danger" style="display: none;">Property is required.</small>
+
+		</div>
+
+		<div class="col-md-12 d-flex justify-content-end padtop">
+			<button type="button" class="btn btn-danger ml-6" id="deleteButtonId" style="margin-right:2px;background-color:#a58d63 !important;border-color:#a58d63 !important; display:none">Delete</button>
+			<button type="button" class="btn btn-secondary" id="cancelButtonId" style="margin-right:2px;background-color:#a58d63 !important;border-color:#a58d63 !important; display:none">Cancel</button>
+			<button type="button" class="btn btn-primary ml-6" id="saveButtonId" style="background-color:#a58d63 !important;border-color:#a58d63 !important; display:none">Save</button>
+		</div>
+
+	</div>
+</div>
+<script>
+	var properties="",flow="";
+			document.getElementById("flowId").addEventListener("change", function () {
+				const property = document.getElementById("propertyId");
+				const deleteButton = document.getElementById("deleteButtonId");
+				const cancelButton = document.getElementById("cancelButtonId");
+				const saveButton = document.getElementById("saveButtonId");
+				const flowError=document.getElementById("flowErrorId");
+				const propertyError=document.getElementById("propertyErrorId");
+				const selectedValue = this.value;
+				if (selectedValue==="0"){
+					deleteButton.style.display="none";
+					cancelButton.style.display="none";
+					saveButton.style.display="none";
+					property.style.display = "none";
+
+				} else {
+					flowError.style.display = "none";
+					propertyError.style.display = "none";
+					property.style.display = "block";
+					deleteButton.style.display="block";
+					cancelButton.style.display="block";
+					saveButton.style.display="block";
+				}
+
+			if (selectedValue != "0"){
+				var id=document.getElementById("flowId").value.trim();
+
+				var token="";
+				const data = {
+					Id: id
+				};
+				fetch("/Flow/FlowProperty", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"X-CSRF-TOKEN": token
+					},
+					body: JSON.stringify(data)
+				}).then(response => {
+					if (!response.ok) {
+						throw new Error("Failed to save the data.");
+					}
+					return response.json();
+				}).then(result => {
+					if (result.success) {
+						let properties = result.data.parameters;
+						let propertyTypes = result.data.propertyType;
+						let dbScripts = result.data.dbScript;
+						let savedProperties=result.data.currentProperty;
+
+
+						let typeOptions = propertyTypes.map(type => `<option value="${type.key}">${type.value}</option>`).join('');
+
+						let scriptOptions = dbScripts.map(type => `<option value="${type.key}">${type.value}</option>`).join('');
+
+
+						let tbody = document.querySelector("#propertiesTableId tbody");
+						  tbody.innerHTML = "";
+						  properties.forEach(item => {
+							  let row = document.createElement("tr");
+							  row.style.backgroundColor = '#e6e6e6';
+
+							   row.innerHTML = `
+							   <td>${item.key}</td>
+							   <td>
+							   <select class="form-select">
+							   ${typeOptions}
+
+							   </select>
+							   </td>
+							   <td><input type="text" class="form-control" /></td>
+							   <td><input type="text" class="form-control" /></td>
+							  <td>
+							   <select class="form-select">
+							   ${scriptOptions}
+								</select>
+								</td>
+								<td><input type="checkbox" class="form-check-input"></td>
+							   <td><input type="checkbox" class="form-check-input" ></td>
+							   <td><input type="checkbox" class="form-check-input" ></td>
+							   `;
+							  tbody.appendChild(row);
+							  let selects = row.querySelectorAll("select");
+
+							  let savedItem = Array.isArray(savedProperties) ? savedProperties.find(sp => sp.parameter === item.key) : null;
+
+							  if (savedItem) {
+								  let PropertyTypeId= row.querySelector("select:nth-of-type(1)");
+								  let Title= row.querySelectorAll("input[type='text']")[0];
+								  let ErrorMessage= row.querySelectorAll("input[type='text']")[1];
+								  let ScriptId= selects.length > 1 ? selects[1] : null;
+								  let IsPreproperty= row.querySelector("input[type='checkbox']:nth-of-type(1)");
+								  let IsRequired= row.cells[6].querySelector("input[type='checkbox']");
+								  let IsHidden= row.cells[7].querySelector("input[type='checkbox']");
+
+								  PropertyTypeId.value = savedItem.propertyTypeId;
+								  Title.value = savedItem.title;
+								  ErrorMessage.value = savedItem.errorMessage;
+								  ScriptId.value = savedItem.script;
+								  IsRequired.checked = savedItem.isRequired || false;
+								  IsPreproperty.checked = savedItem.isPreproperty || false;
+								  IsHidden.checked = savedItem.isVisible || false;
+							  }
+						});
+			}
+						  else {
+						alert(result.message);
+					}
+				}).catch(error => {
+					console.error("Error:", error);
+					alert("An error occurred while saving data.");
+				});
+
+			} else {
+				parameter.style.display = "block";
+				dbType.style.display = "block";
+				dbSource.style.display = "block";
+				specificField2.style.display = "block";
+				errorMessageVisibile=true;
+			}
+			});
+
+			document.addEventListener('change', function (event) {
+				if (event.target.classList.contains('form-check-input')) {
+					const checkedIds = getCheckedIds();
+					console.log('Checked IDs:', checkedIds);
+				}
+			});
+
+			function getCheckedIds() {
+				const checkedIds = [];
+				properties="";
+				const rows = document.querySelectorAll('#propertiesTableId tbody tr');
+				rows.forEach(row => {
+					const checkbox = row.querySelector('input[type="checkbox"]');
+					if (checkbox && checkbox.checked) {
+						const id = row.querySelector('td:nth-child(2)').textContent.trim();
+						checkedIds.push(id);
+						properties=properties+id+",";
+					}
+				});
+
+			return checkedIds;
+		}
+
+			document.addEventListener("DOMContentLoaded", function () {
+				document.getElementById("saveButtonId").addEventListener("click", function () {
+					let token="";
+					let flowId=parseInt(document.getElementById("flowId").value.trim());
+					let tableRows = document.querySelectorAll("#propertiesTableId tbody tr");
+					let rowData = [];
+					let hasError = false;
+					tableRows.forEach(row => {
+						let selects = row.querySelectorAll("select");
+						let errorMessageInput = row.querySelectorAll("input[type='text']")[1];
+						let labelError=row.querySelectorAll("input[type='text']")[0];
+						let rowValues = {
+
+							Parameter: row.cells[0].textContent.trim(),
+							PropertyTypeId: row.querySelector("select:nth-of-type(1)").value,
+							Title: row.querySelectorAll("input[type='text']")[0].value,
+							ErrorMessage: row.querySelectorAll("input[type='text']")[1].value,
+							Script: selects.length > 1 ? selects[1].value : null,
+							IsPreproperty: row.querySelector("input[type='checkbox']:nth-of-type(1)").checked,
+							IsRequired: row.cells[6].querySelector("input[type='checkbox']").checked,
+							IsHidden: row.cells[7].querySelector("input[type='checkbox']").checked
+						};
+						if(rowValues.IsRequired && rowValues.ErrorMessage===""){
+							hasError=true;
+							errorMessageInput.style.border = "2px solid red";
+						}
+						if(rowValues.IsRequired && rowValues.IsHidden===false && rowValues.Title===""){
+							hasError=true;
+							labelError.style.border = "2px solid red";
+						}
+
+						rowData.push(rowValues);
+					 });
+					 if(!hasError)
+					 {
+						 fetch("/Flow/SaveFlow", {
+							 method: "POST",
+							 headers: {
+								 "Content-Type": "application/json",
+								 "X-CSRF-TOKEN": token
+							 },
+							 body: JSON.stringify({ FlowId:flowId, Properties: rowData,})
+					 })
+					 .then(response => response.json())
+					 .then(result => {
+						 if (result.success) {
+							 alert(result.message);
+						 } else {
+							 alert(result.message);
+						 }
+					 })
+					 .catch(error => {
+						 console.error("Error:", error);
+						 alert("An error occurred while saving data.");
+					 });
+					 }
+					 });
+
+					document.getElementById("deleteButtonId").addEventListener("click", function () {
+					let token="";
+					let flowId=parseInt(document.getElementById("flowId").value.trim());
+					fetch("/Flow/DeleteFlow",
+					{
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							"X-CSRF-TOKEN": token
+						},
+						body: JSON.stringify
+						(
+							{
+								Id:flowId
+							}
+						)
+					})
+					.then(response => response.json())
+					.then(result => {
+						if (result.success) {
+							alert(result.message);
+							location.reload();
+
+						} else {
+							alert(result.message);
+						}
+					})
+					.catch(error => {
+						console.error("Error:", error);
+						alert("An error occurred while saving data.");
+					});
+					});
+					});
+</script>

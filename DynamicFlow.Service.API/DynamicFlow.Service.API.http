@@ -1,0 +1,6 @@
+@DynamicFlow.Service.API_HostAddress = http://localhost:5268
+
+GET {{DynamicFlow.Service.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,986 @@
+﻿USE [master]
+GO
+/****** Object:  Database [DynamicFlow]    Script Date: 1/20/2025 9:44:05 AM ******/
+CREATE DATABASE [DynamicFlow]
+ CONTAINMENT = NONE
+ ON  PRIMARY 
+( NAME = N'DynamicFlow', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\DATA\DynamicFlow.mdf' , SIZE = 8192KB , MAXSIZE = UNLIMITED, FILEGROWTH = 65536KB )
+ LOG ON 
+( NAME = N'DynamicFlow_log', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\DATA\DynamicFlow_log.ldf' , SIZE = 8192KB , MAXSIZE = 2048GB , FILEGROWTH = 65536KB )
+ WITH CATALOG_COLLATION = DATABASE_DEFAULT
+GO
+ALTER DATABASE [DynamicFlow] SET COMPATIBILITY_LEVEL = 150
+GO
+IF (1 = FULLTEXTSERVICEPROPERTY('IsFullTextInstalled'))
+begin
+EXEC [DynamicFlow].[dbo].[sp_fulltext_database] @action = 'enable'
+end
+GO
+ALTER DATABASE [DynamicFlow] SET ANSI_NULL_DEFAULT OFF 
+GO
+ALTER DATABASE [DynamicFlow] SET ANSI_NULLS OFF 
+GO
+ALTER DATABASE [DynamicFlow] SET ANSI_PADDING OFF 
+GO
+ALTER DATABASE [DynamicFlow] SET ANSI_WARNINGS OFF 
+GO
+ALTER DATABASE [DynamicFlow] SET ARITHABORT OFF 
+GO
+ALTER DATABASE [DynamicFlow] SET AUTO_CLOSE OFF 
+GO
+ALTER DATABASE [DynamicFlow] SET AUTO_SHRINK OFF 
+GO
+ALTER DATABASE [DynamicFlow] SET AUTO_UPDATE_STATISTICS ON 
+GO
+ALTER DATABASE [DynamicFlow] SET CURSOR_CLOSE_ON_COMMIT OFF 
+GO
+ALTER DATABASE [DynamicFlow] SET CURSOR_DEFAULT  GLOBAL 
+GO
+ALTER DATABASE [DynamicFlow] SET CONCAT_NULL_YIELDS_NULL OFF 
+GO
+ALTER DATABASE [DynamicFlow] SET NUMERIC_ROUNDABORT OFF 
+GO
+ALTER DATABASE [DynamicFlow] SET QUOTED_IDENTIFIER OFF 
+GO
+ALTER DATABASE [DynamicFlow] SET RECURSIVE_TRIGGERS OFF 
+GO
+ALTER DATABASE [DynamicFlow] SET  ENABLE_BROKER 
+GO
+ALTER DATABASE [DynamicFlow] SET AUTO_UPDATE_STATISTICS_ASYNC OFF 
+GO
+ALTER DATABASE [DynamicFlow] SET DATE_CORRELATION_OPTIMIZATION OFF 
+GO
+ALTER DATABASE [DynamicFlow] SET TRUSTWORTHY OFF 
+GO
+ALTER DATABASE [DynamicFlow] SET ALLOW_SNAPSHOT_ISOLATION OFF 
+GO
+ALTER DATABASE [DynamicFlow] SET PARAMETERIZATION SIMPLE 
+GO
+ALTER DATABASE [DynamicFlow] SET READ_COMMITTED_SNAPSHOT OFF 
+GO
+ALTER DATABASE [DynamicFlow] SET HONOR_BROKER_PRIORITY OFF 
+GO
+ALTER DATABASE [DynamicFlow] SET RECOVERY FULL 
+GO
+ALTER DATABASE [DynamicFlow] SET  MULTI_USER 
+GO
+ALTER DATABASE [DynamicFlow] SET PAGE_VERIFY CHECKSUM  
+GO
+ALTER DATABASE [DynamicFlow] SET DB_CHAINING OFF 
+GO
+ALTER DATABASE [DynamicFlow] SET FILESTREAM( NON_TRANSACTED_ACCESS = OFF ) 
+GO
+ALTER DATABASE [DynamicFlow] SET TARGET_RECOVERY_TIME = 60 SECONDS 
+GO
+ALTER DATABASE [DynamicFlow] SET DELAYED_DURABILITY = DISABLED 
+GO
+ALTER DATABASE [DynamicFlow] SET ACCELERATED_DATABASE_RECOVERY = OFF  
+GO
+EXEC sys.sp_db_vardecimal_storage_format N'DynamicFlow', N'ON'
+GO
+ALTER DATABASE [DynamicFlow] SET QUERY_STORE = OFF
+GO
+USE [DynamicFlow]
+GO
+/****** Object:  Schema [CMS]    Script Date: 1/20/2025 9:44:08 AM ******/
+CREATE SCHEMA [CMS]
+GO
+/****** Object:  UserDefinedFunction [dbo].[fn_response]    Script Date: 1/20/2025 9:44:08 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+--select ResponseCode,ResponseMessage from fn_response(10,0)      
+CREATE function [dbo].[fn_response]      
+(      
+@Id smallint=0,    
+@LanguageId bigint=0    
+)      
+returns @Response Table      
+(      
+ResponseCode varchar(20),      
+ResponseMessage varchar(300)      
+)      
+as      
+begin      
+insert into @Response(ResponseCode,ResponseMessage)      
+SELECT      COALESCE(t.ResponseCode, '404404') ResponseCode,     COALESCE(t.ResponseMessage, 'Not Found') AS ResponseMessage FROM      (SELECT @Id AS id) AS input LEFT JOIN      AppMessage AS t ON input.id = t.id and t.IsDeleted=0 return     
+ 
+end
+GO
+/****** Object:  UserDefinedFunction [dbo].[fn_validate_add_new_connection]    Script Date: 1/20/2025 9:44:08 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+--select ResponseCode,ResponseMessage from fn_validate_add_new_connection('','','','','')  
+CREATE function [dbo].[fn_validate_add_new_connection]  
+(  
+@Title varchar(100) ='',  
+@Source varchar(50) ='',  
+@Catalog varchar(100)='',  
+@User varchar(100)='',  
+@Password varchar(300)=''  
+)  
+returns @Response Table  
+(  
+ResponseCode varchar(30),  
+ResponseMessage nvarchar(500)  
+)  
+as  
+begin  
+if @Title='' or @Source='' or @Catalog='' or @User='' or @Password=''  
+begin  
+insert into @Response(ResponseCode,ResponseMessage)  
+select ResponseCode,ResponseMessage from fn_response(30,0)  
+return  
+end  
+  
+if exists(select top (1) id from DbConnection where DbSource=@Source and @Catalog=@Catalog and DbUser=@User and IsDeleted=0)  
+begin  
+insert into @Response(ResponseCode,ResponseMessage)  
+select ResponseCode,ResponseMessage from fn_response(40,0)  
+return  
+end  
+  
+else  
+begin  
+insert into @Response(ResponseCode,ResponseMessage)  
+select ResponseCode,ResponseMessage from fn_response(10,0)  
+return  
+end  
+  
+return  
+end
+GO
+/****** Object:  UserDefinedFunction [dbo].[fn_validate_add_new_flow]    Script Date: 1/20/2025 9:44:08 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+--select * from fn_validate_add_new_flow(0,0,'','')
+create function [dbo].[fn_validate_add_new_flow]
+(
+@DbConnectionId smallint,
+@ButtonTypeId smallint,
+@Title varchar(100),
+@SqlScript varchar(100)
+)
+returns @Response Table
+(
+ResponseCode varchar(30),
+ResponseMessage nvarchar(1000)
+)
+as
+begin
+
+if @DbConnectionId=0 or @ButtonTypeId=0 or @Title='' or @SqlScript=''
+begin
+insert into @Response(ResponseCode,ResponseMessage)
+select ResponseCode,ResponseMessage from fn_response(30,0)  
+return
+end
+
+if not exists(select top (1) id from DbConnection where id=@DbConnectionId and IsDeleted=0)
+begin
+insert into @Response(ResponseCode,ResponseMessage)
+select ResponseCode,ResponseMessage from fn_response(50,0)  
+return
+end
+
+if not exists(select top (1) id from ButtonType where id=@ButtonTypeId and IsDeleted=0)
+begin
+insert into @Response(ResponseCode,ResponseMessage)
+select ResponseCode,ResponseMessage from fn_response(50,0)  
+return
+end
+
+if exists(select top (1) id from Flow where Title=@Title and IsDeleted=0)
+begin
+insert into @Response(ResponseCode,ResponseMessage)
+select ResponseCode,ResponseMessage from fn_response(40,0)  
+return
+end
+
+insert into @Response(ResponseCode,ResponseMessage)
+select ResponseCode,ResponseMessage from fn_response(10,0)  
+
+return
+end
+GO
+/****** Object:  UserDefinedFunction [dbo].[fn_validate_add_new_flow_property]    Script Date: 1/20/2025 9:44:08 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+--select * from fn_validate_add_new_flow_property(0,0,'',0,'','',0,0,'',0,0,'','')
+CREATE function [dbo].[fn_validate_add_new_flow_property]
+(
+@FlowId smallint,
+@DataTypeId smallint,
+@Title varchar(100),
+@Position smallint,
+@ListScript varchar(100),
+@DefaultValue varchar(100),
+@IsRequired bit,
+@IsPreProperty bit,
+@ElementGroup smallint,
+@ParentPropertyId smallint,
+@Parameter varchar(100),
+@ErrorMessage nvarchar(300)
+)
+returns @Response Table
+(
+ResponseCode varchar(30),
+ResponseMessage varchar(1000)
+)
+as
+begin
+if @FlowId=0 or @DataTypeId=0 or @Title is null or @Title='' or @Position=0
+begin
+insert into @Response(ResponseCode,ResponseMessage)
+select ResponseCode,ResponseMessage from fn_response(30,0)
+return
+end
+
+if not exists(select top (1) id from Flow where id=@FlowId and IsDeleted=0 )
+begin
+insert into @Response(ResponseCode,ResponseMessage)
+select ResponseCode,ResponseMessage from fn_response(110,0)
+return
+end
+
+if not exists(select top (1) 1 id from DataType where id=@DataTypeId and IsDeleted=0)
+begin
+insert into @Response(ResponseCode,ResponseMessage)
+select ResponseCode,ResponseMessage from fn_response(120,0)
+return
+end
+
+
+if exists (select top (1) id from FlowProperty where Position=@Position)
+begin
+insert into @Response(ResponseCode,ResponseMessage)
+select ResponseCode,ResponseMessage from fn_response(60,0)
+return
+end
+
+if @IsPreProperty=1 and @ListScript=''
+begin
+insert into @Response(ResponseCode,ResponseMessage)
+select ResponseCode,ResponseMessage from fn_response(70,0)
+return
+end
+
+if @DataTypeId<>10 and @IsRequired=1 and @ErrorMessage=''
+begin
+insert into @Response(ResponseCode,ResponseMessage)
+select ResponseCode,ResponseMessage from fn_response(80,0)
+return
+end
+
+if @DataTypeId<>10 and @IsRequired=1 and @ErrorMessage=''
+begin
+insert into @Response(ResponseCode,ResponseMessage)
+select ResponseCode,ResponseMessage from fn_response(100,0)
+return
+end
+
+if @DataTypeId<>10 and @Parameter=''
+begin
+insert into @Response(ResponseCode,ResponseMessage)
+select ResponseCode,ResponseMessage from fn_response(80,0)
+return
+end
+
+if @DataTypeId<>10 and LEFT(@Parameter, 1) <> '@'
+begin
+insert into @Response(ResponseCode,ResponseMessage)
+select ResponseCode,ResponseMessage from fn_response(80,0)
+return
+end
+
+if @ParentPropertyId is not null and @ParentPropertyId<>0 and not exists(select top (1) id from FlowProperty where FlowId=@FlowId and id=@ParentPropertyId and IsDeleted=0)
+begin
+insert into @Response(ResponseCode,ResponseMessage)
+select ResponseCode,ResponseMessage from fn_response(130,0)
+return
+end
+
+insert into @Response(ResponseCode,ResponseMessage)
+select ResponseCode,ResponseMessage from fn_response(10,0)
+
+return
+end
+GO
+/****** Object:  UserDefinedFunction [dbo].[fn_validate_flow]    Script Date: 1/20/2025 9:44:08 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+--select * from fn_validate_flow('RegisterProfile',0)  
+CREATE function [dbo].[fn_validate_flow]  
+(  
+@Name varchar (100),  
+@LanguageId tinyint=0  
+)  
+returns @ResponseTable Table  
+(  
+ResponseCode varchar(30),  
+ResponseDescription nvarchar(300),  
+ConnectionString varchar(1000),
+Id bigint
+)  
+as  
+begin  
+declare @Id bigint=0;
+select @Id=id from Flow where Title=@Name and IsEnabled=1 and IsDeleted<>1 order by CreatedDate desc
+if @Id is null or @Id=''
+begin  
+insert into @ResponseTable(ResponseCode,ResponseDescription)  
+select '404','No flow found'  
+return  
+end  
+  
+if not exists(select top (1) id from FlowProperty where FlowId=@id  and IsDeleted<>1)  
+begin  
+insert into @ResponseTable(ResponseCode,ResponseDescription)  
+select '404','No property found'  
+return  
+end  
+  
+declare @DbConnectionId smallint=(select DbConnectionId from Flow where id=@Id)  
+  
+if @DbConnectionId is null  
+begin  
+insert into @ResponseTable(ResponseCode,ResponseDescription)  
+select '404','No Db connection found'  
+return  
+end  
+  
+if not exists(select top (1) id from DbConnection where id=@DbConnectionId and IsDeleted<>1)  
+begin  
+insert into @ResponseTable(ResponseCode,ResponseDescription)  
+select '404','No Db connection found'  
+return  
+end  
+  
+  
+declare @DbSource varchar(30)='',@DbCatalog varchar(100)='',@DbUser varchar(50)='',@DbPassowrd varchar(100),@ConnectionString varchar(1000)='';  
+select @DbSource=DbSource,@DbCatalog=DbCatalog,@DbUser=DbUser,@DbPassowrd=DbPassword,@ConnectionString=connectionstring from DbConnection where id=@DbConnectionId  
+  
+SET @ConnectionString = REPLACE(                           REPLACE(                               REPLACE(                                   REPLACE(@ConnectionString, '{0}', @DbSource),                               '{1}', @DbCatalog),                   
+        '{2}', @DbUser),                       '{3}', @DbPassowrd)   
+  
+insert into @ResponseTable(ResponseCode,ResponseDescription,ConnectionString,Id)  
+select '00','Success',@ConnectionString,@Id  
+  
+return  
+end  
+  
+GO
+/****** Object:  Table [CMS].[BaseUrl]    Script Date: 1/20/2025 9:44:08 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [CMS].[BaseUrl](
+	[Id] [smallint] IDENTITY(10,1) NOT NULL,
+	[Url] [varchar](100) NOT NULL,
+	[CreatedBy] [smallint] NOT NULL,
+	[CreatedDate] [datetime] NOT NULL,
+	[ModifedBy] [smallint] NOT NULL,
+	[ModifiedDate] [datetime] NOT NULL,
+	[IsDeleted] [bit] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [CMS].[Endpoint]    Script Date: 1/20/2025 9:44:08 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [CMS].[Endpoint](
+	[Id] [smallint] IDENTITY(10,1) NOT NULL,
+	[BaseUrlId] [smallint] NOT NULL,
+	[Key] [varchar](100) NOT NULL,
+	[Endpoint] [varchar](100) NOT NULL,
+	[AccessToken] [varchar](50) NULL,
+	[CreatedBy] [smallint] NOT NULL,
+	[CreatedDate] [datetime] NOT NULL,
+	[ModifiedBy] [smallint] NOT NULL,
+	[ModifiedDate] [datetime] NOT NULL,
+	[IsDeleted] [bit] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+UNIQUE NONCLUSTERED 
+(
+	[Key] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[AppMessage]    Script Date: 1/20/2025 9:44:08 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[AppMessage](
+	[Id] [smallint] IDENTITY(10,10) NOT NULL,
+	[FlowId] [smallint] NULL,
+	[ResponseCode] [varchar](30) NOT NULL,
+	[ResponseMessage] [nvarchar](1000) NOT NULL,
+	[CreatedBy] [smallint] NOT NULL,
+	[CreatedDate] [datetime] NOT NULL,
+	[ModifiedBy] [smallint] NOT NULL,
+	[ModifiedDate] [datetime] NOT NULL,
+	[IsDeleted] [bit] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[ButtonType]    Script Date: 1/20/2025 9:44:08 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[ButtonType](
+	[Id] [smallint] IDENTITY(10,1) NOT NULL,
+	[Title] [nvarchar](100) NOT NULL,
+	[Color] [varchar](100) NOT NULL,
+	[Remarks] [nvarchar](500) NULL,
+	[CreatedBy] [smallint] NULL,
+	[CreatedDate] [datetime] NOT NULL,
+	[ModifiedBy] [smallint] NULL,
+	[ModifieddDate] [datetime] NOT NULL,
+	[IsDeleted] [bit] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[DataType]    Script Date: 1/20/2025 9:44:08 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[DataType](
+	[Id] [smallint] IDENTITY(10,1) NOT NULL,
+	[Title] [nvarchar](100) NULL,
+	[IsMultiLine] [bit] NOT NULL,
+	[IsMultiChoice] [bit] NOT NULL,
+	[Remarks] [nvarchar](500) NULL,
+	[CreatedBy] [smallint] NULL,
+	[CreatedDate] [datetime] NOT NULL,
+	[ModifiedBy] [smallint] NULL,
+	[ModifieddDate] [datetime] NOT NULL,
+	[IsDeleted] [bit] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[DbConnection]    Script Date: 1/20/2025 9:44:08 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[DbConnection](
+	[Id] [smallint] IDENTITY(10,10) NOT NULL,
+	[Title] [nvarchar](100) NOT NULL,
+	[DbSource] [varchar](100) NOT NULL,
+	[DbCatalog] [varchar](300) NOT NULL,
+	[DbUser] [varchar](100) NOT NULL,
+	[DbPassword] [varchar](1000) NOT NULL,
+	[ConnectionString] [varchar](1000) NULL,
+	[Remarks] [nvarchar](500) NULL,
+	[CreatedBy] [smallint] NULL,
+	[CreatedDate] [datetime] NOT NULL,
+	[ModifiedBy] [smallint] NULL,
+	[ModifiedDate] [datetime] NOT NULL,
+	[IsDeleted] [bit] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[DbDataType]    Script Date: 1/20/2025 9:44:08 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[DbDataType](
+	[Id] [tinyint] IDENTITY(10,1) NOT NULL,
+	[Title] [varchar](30) NOT NULL,
+	[CreatedBy] [smallint] NOT NULL,
+	[CreatedDate] [datetime] NOT NULL,
+	[ModifiedBy] [smallint] NOT NULL,
+	[ModifiedDate] [datetime] NOT NULL,
+	[IsDeleted] [bit] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+UNIQUE NONCLUSTERED 
+(
+	[Title] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[ElementEvent]    Script Date: 1/20/2025 9:44:08 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[ElementEvent](
+	[Id] [smallint] IDENTITY(10,10) NOT NULL,
+	[Title] [varchar](100) NOT NULL,
+	[CreatedBy] [smallint] NOT NULL,
+	[CreatedDate] [datetime] NOT NULL,
+	[ModifiedBy] [smallint] NOT NULL,
+	[ModifiedDate] [datetime] NOT NULL,
+	[IsDeleted] [bit] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Flow]    Script Date: 1/20/2025 9:44:08 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Flow](
+	[Id] [smallint] IDENTITY(10,1) NOT NULL,
+	[DbConnectionId] [smallint] NOT NULL,
+	[ButtonTypeId] [smallint] NOT NULL,
+	[Title] [nvarchar](100) NULL,
+	[Description] [nvarchar](1000) NULL,
+	[IsEnabled] [bit] NOT NULL,
+	[SqlScript] [varchar](max) NULL,
+	[Remarks] [nvarchar](500) NULL,
+	[CreatedBy] [smallint] NULL,
+	[CreatedDate] [datetime] NOT NULL,
+	[ModifiedBy] [smallint] NULL,
+	[ModifieddDate] [datetime] NOT NULL,
+	[IsDeleted] [bit] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[FlowProperty]    Script Date: 1/20/2025 9:44:08 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[FlowProperty](
+	[Id] [smallint] IDENTITY(10,1) NOT NULL,
+	[FlowId] [smallint] NOT NULL,
+	[DataTypeId] [smallint] NOT NULL,
+	[ElementEventId] [smallint] NULL,
+	[DbDataTypeId] [tinyint] NULL,
+    [ParentPropertyId] [smallint] NULL,
+    [Title] [nvarchar](100) NOT NULL,
+	[Position] [smallint] NOT NULL,
+	[IsRequired] [bit] NOT NULL,
+	[IsPreload] [bit] NOT NULL,
+	[IsPreProperty] [bit] NOT NULL,
+	[IsVisible] [bit] NOT NULL,
+	[ElementGroup] [smallint] NOT NULL,
+	[ListScript] [varchar](100) NULL,
+	[DefaultValue] [nvarchar](1000) NULL,
+    [Parameter] [varchar](100) NULL,
+	[AlwaysDefaultValue] [nvarchar](300) NULL,
+	[ErrorMessage] [nvarchar](300) NULL,
+	[Remarks] [nvarchar](500) NULL,
+	[CreatedBy] [smallint] NULL,
+	[CreatedDate] [datetime] NOT NULL,
+	[ModifiedBy] [smallint] NULL,
+	[ModifieddDate] [datetime] NOT NULL,
+	[IsDeleted] [bit] NOT NULL
+	
+PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[SqlException]    Script Date: 1/20/2025 9:44:08 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[SqlException](
+	[ErrorProcedure] [varchar](100) NOT NULL,
+	[ErrorLine] [smallint] NULL,
+	[ErrorMessage] [varchar](max) NOT NULL,
+	[CreatedDate] [datetime] NOT NULL
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+ALTER TABLE [CMS].[Api] ADD  DEFAULT ((100)) FOR [CreatedBy]
+GO
+ALTER TABLE [CMS].[Api] ADD  DEFAULT (getdate()) FOR [CreatedDate]
+GO
+ALTER TABLE [CMS].[Api] ADD  DEFAULT ((100)) FOR [ModifedBy]
+GO
+ALTER TABLE [CMS].[Api] ADD  DEFAULT (getdate()) FOR [ModifiedDate]
+GO
+ALTER TABLE [CMS].[Api] ADD  DEFAULT ((0)) FOR [IsDeleted]
+GO
+ALTER TABLE [CMS].[BaseUrl] ADD  DEFAULT ((100)) FOR [CreatedBy]
+GO
+ALTER TABLE [CMS].[BaseUrl] ADD  DEFAULT (getdate()) FOR [CreatedDate]
+GO
+ALTER TABLE [CMS].[BaseUrl] ADD  DEFAULT ((100)) FOR [ModifedBy]
+GO
+ALTER TABLE [CMS].[BaseUrl] ADD  DEFAULT (getdate()) FOR [ModifiedDate]
+GO
+ALTER TABLE [CMS].[BaseUrl] ADD  DEFAULT ((0)) FOR [IsDeleted]
+GO
+ALTER TABLE [CMS].[Endpoint] ADD  DEFAULT ((100)) FOR [CreatedBy]
+GO
+ALTER TABLE [CMS].[Endpoint] ADD  DEFAULT (getdate()) FOR [CreatedDate]
+GO
+ALTER TABLE [CMS].[Endpoint] ADD  DEFAULT ((100)) FOR [ModifiedBy]
+GO
+ALTER TABLE [CMS].[Endpoint] ADD  DEFAULT (getdate()) FOR [ModifiedDate]
+GO
+ALTER TABLE [CMS].[Endpoint] ADD  DEFAULT ((0)) FOR [IsDeleted]
+GO
+ALTER TABLE [dbo].[AppMessage] ADD  DEFAULT ((100)) FOR [CreatedBy]
+GO
+ALTER TABLE [dbo].[AppMessage] ADD  DEFAULT (getdate()) FOR [CreatedDate]
+GO
+ALTER TABLE [dbo].[AppMessage] ADD  DEFAULT ((100)) FOR [ModifiedBy]
+GO
+ALTER TABLE [dbo].[AppMessage] ADD  DEFAULT (getdate()) FOR [ModifiedDate]
+GO
+ALTER TABLE [dbo].[AppMessage] ADD  DEFAULT ((0)) FOR [IsDeleted]
+GO
+ALTER TABLE [dbo].[ButtonType] ADD  DEFAULT ('Ok') FOR [Title]
+GO
+ALTER TABLE [dbo].[ButtonType] ADD  DEFAULT ('#FFFFFF') FOR [Color]
+GO
+ALTER TABLE [dbo].[ButtonType] ADD  DEFAULT ((100)) FOR [CreatedBy]
+GO
+ALTER TABLE [dbo].[ButtonType] ADD  DEFAULT (getdate()) FOR [CreatedDate]
+GO
+ALTER TABLE [dbo].[ButtonType] ADD  DEFAULT ((100)) FOR [ModifiedBy]
+GO
+ALTER TABLE [dbo].[ButtonType] ADD  DEFAULT (getdate()) FOR [ModifieddDate]
+GO
+ALTER TABLE [dbo].[ButtonType] ADD  DEFAULT ((0)) FOR [IsDeleted]
+GO
+ALTER TABLE [dbo].[DataType] ADD  DEFAULT ((0)) FOR [IsMultiLine]
+GO
+ALTER TABLE [dbo].[DataType] ADD  DEFAULT ((0)) FOR [IsMultiChoice]
+GO
+ALTER TABLE [dbo].[DataType] ADD  DEFAULT ((100)) FOR [CreatedBy]
+GO
+ALTER TABLE [dbo].[DataType] ADD  DEFAULT (getdate()) FOR [CreatedDate]
+GO
+ALTER TABLE [dbo].[DataType] ADD  DEFAULT ((100)) FOR [ModifiedBy]
+GO
+ALTER TABLE [dbo].[DataType] ADD  DEFAULT (getdate()) FOR [ModifieddDate]
+GO
+ALTER TABLE [dbo].[DataType] ADD  DEFAULT ((0)) FOR [IsDeleted]
+GO
+ALTER TABLE [dbo].[DbConnection] ADD  DEFAULT ((100)) FOR [CreatedBy]
+GO
+ALTER TABLE [dbo].[DbConnection] ADD  DEFAULT (getdate()) FOR [CreatedDate]
+GO
+ALTER TABLE [dbo].[DbConnection] ADD  DEFAULT ((100)) FOR [ModifiedBy]
+GO
+ALTER TABLE [dbo].[DbConnection] ADD  DEFAULT (getdate()) FOR [ModifiedDate]
+GO
+ALTER TABLE [dbo].[DbConnection] ADD  DEFAULT ((0)) FOR [IsDeleted]
+GO
+ALTER TABLE [dbo].[DbDataType] ADD  DEFAULT ((100)) FOR [CreatedBy]
+GO
+ALTER TABLE [dbo].[DbDataType] ADD  DEFAULT (getdate()) FOR [CreatedDate]
+GO
+ALTER TABLE [dbo].[DbDataType] ADD  DEFAULT ((100)) FOR [ModifiedBy]
+GO
+ALTER TABLE [dbo].[DbDataType] ADD  DEFAULT (getdate()) FOR [ModifiedDate]
+GO
+ALTER TABLE [dbo].[DbDataType] ADD  DEFAULT ((0)) FOR [IsDeleted]
+GO
+ALTER TABLE [dbo].[ElementEvent] ADD  DEFAULT ((100)) FOR [CreatedBy]
+GO
+ALTER TABLE [dbo].[ElementEvent] ADD  DEFAULT (getdate()) FOR [CreatedDate]
+GO
+ALTER TABLE [dbo].[ElementEvent] ADD  DEFAULT ((100)) FOR [ModifiedBy]
+GO
+ALTER TABLE [dbo].[ElementEvent] ADD  DEFAULT (getdate()) FOR [ModifiedDate]
+GO
+ALTER TABLE [dbo].[ElementEvent] ADD  DEFAULT ((0)) FOR [IsDeleted]
+GO
+ALTER TABLE [dbo].[Flow] ADD  DEFAULT ((1)) FOR [IsEnabled]
+GO
+ALTER TABLE [dbo].[Flow] ADD  DEFAULT ((100)) FOR [CreatedBy]
+GO
+ALTER TABLE [dbo].[Flow] ADD  DEFAULT (getdate()) FOR [CreatedDate]
+GO
+ALTER TABLE [dbo].[Flow] ADD  DEFAULT ((100)) FOR [ModifiedBy]
+GO
+ALTER TABLE [dbo].[Flow] ADD  DEFAULT (getdate()) FOR [ModifieddDate]
+GO
+ALTER TABLE [dbo].[Flow] ADD  DEFAULT ((0)) FOR [IsDeleted]
+GO
+ALTER TABLE [dbo].[FlowProperty] ADD  DEFAULT ((1)) FOR [IsRequired]
+GO
+ALTER TABLE [dbo].[FlowProperty] ADD  DEFAULT ((0)) FOR [IsPreProperty]
+GO
+ALTER TABLE [dbo].[FlowProperty] ADD  DEFAULT ((100)) FOR [CreatedBy]
+GO
+ALTER TABLE [dbo].[FlowProperty] ADD  DEFAULT (getdate()) FOR [CreatedDate]
+GO
+ALTER TABLE [dbo].[FlowProperty] ADD  DEFAULT ((100)) FOR [ModifiedBy]
+GO
+ALTER TABLE [dbo].[FlowProperty] ADD  DEFAULT (getdate()) FOR [ModifieddDate]
+GO
+ALTER TABLE [dbo].[FlowProperty] ADD  DEFAULT ((0)) FOR [IsDeleted]
+GO
+ALTER TABLE [dbo].[FlowProperty] ADD  DEFAULT ((0)) FOR [ElementGroup]
+GO
+ALTER TABLE [dbo].[FlowProperty] ADD  DEFAULT ((1)) FOR [IsVisible]
+GO
+ALTER TABLE [dbo].[FlowProperty] ADD  DEFAULT ((0)) FOR [IsPreload]
+GO
+ALTER TABLE [dbo].[SqlException] ADD  DEFAULT (getdate()) FOR [CreatedDate]
+GO
+ALTER TABLE [CMS].[Api]  WITH CHECK ADD FOREIGN KEY([BaseUrlId])
+REFERENCES [CMS].[BaseUrl] ([Id])
+GO
+ALTER TABLE [CMS].[Endpoint]  WITH CHECK ADD FOREIGN KEY([BaseUrlId])
+REFERENCES [CMS].[BaseUrl] ([Id])
+GO
+ALTER TABLE [dbo].[AppMessage]  WITH CHECK ADD FOREIGN KEY([FlowId])
+REFERENCES [dbo].[Flow] ([Id])
+GO
+ALTER TABLE [dbo].[Flow]  WITH CHECK ADD FOREIGN KEY([ButtonTypeId])
+REFERENCES [dbo].[ButtonType] ([Id])
+GO
+ALTER TABLE [dbo].[Flow]  WITH CHECK ADD FOREIGN KEY([DbConnectionId])
+REFERENCES [dbo].[DbConnection] ([Id])
+GO
+ALTER TABLE [dbo].[FlowProperty]  WITH CHECK ADD FOREIGN KEY([DataTypeId])
+REFERENCES [dbo].[DataType] ([Id])
+GO
+ALTER TABLE [dbo].[FlowProperty]  WITH CHECK ADD FOREIGN KEY([DbDataTypeId])
+REFERENCES [dbo].[DbDataType] ([Id])
+GO
+ALTER TABLE [dbo].[FlowProperty]  WITH CHECK ADD FOREIGN KEY([ElementEventId])
+REFERENCES [dbo].[ElementEvent] ([Id])
+GO
+ALTER TABLE [dbo].[FlowProperty]  WITH CHECK ADD FOREIGN KEY([FlowId])
+REFERENCES [dbo].[Flow] ([Id])
+GO
+ALTER TABLE [dbo].[FlowProperty]  WITH CHECK ADD FOREIGN KEY([ParentPropertyId])
+REFERENCES [dbo].[FlowProperty] ([Id])
+GO
+ALTER TABLE [dbo].[AppMessage]  WITH CHECK ADD CHECK  ((len([ResponseCode])>(1)))
+GO
+ALTER TABLE [dbo].[AppMessage]  WITH CHECK ADD CHECK  ((len([ResponseMessage])>(1)))
+GO
+/****** Object:  StoredProcedure [CMS].[GetAllUrl]    Script Date: 1/20/2025 9:44:08 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+--CMS.GetAllUrl  
+CREATE procedure [CMS].[GetAllUrl]  
+as  
+begin  
+select a.[Key],b.[Url]+a.[Endpoint] [Url] from cms.BaseUrl b  
+join cms.[Endpoint] a on a.BaseUrlId=b.Id  
+where b.IsDeleted<>1  
+and a.IsDeleted<>1  
+end
+GO
+/****** Object:  StoredProcedure [dbo].[usp_add_new_connection]    Script Date: 1/20/2025 9:44:08 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+--usp_add_new_connection 'SME','10.38.38.165','SME','sa','SMedi@22222'  
+CREATE procedure [dbo].[usp_add_new_connection]  
+(  
+@Title varchar(100) ='',  
+@Source varchar(50) ='',  
+@Catalog varchar(100)='',  
+@User varchar(100)='',  
+@Password varchar(300)=''  
+)  
+as  
+begin  
+begin try  
+declare @ResponseCode varchar(30),@ResponseMessage nvarchar(1000);  
+select @ResponseCode=ResponseCode,@ResponseMessage=ResponseMessage from fn_validate_add_new_connection(@Title,@Source,@Catalog,@User,@Password)  
+if @ResponseCode<>'00'  
+begin  
+insert into DbConnection(Title,DbSource,DbCatalog,DbUser,DbPassword,ConnectionString) values(@Title,@Source,@Catalog,@User,@Password,'Server={0};Database={1};Trusted_Connection=True;MultipleActiveResultSets=true;User Id={2};Password={3};Integrated Securit
+y=False;Encrypt=false')  
+end  
+select @ResponseCode ResponseCode, @ResponseMessage ResponseMessage  
+end try  
+begin catch  
+declare @Name varchar(100),@Line smallint,@Error varchar(max);  
+SELECT   
+    @Name= ERROR_PROCEDURE(),  
+    @Line= ERROR_LINE(),  
+     @Error= ERROR_MESSAGE() ;  
+  exec usp_add_new_exception @Name,@Line,@Error;  
+  select ResponseCode,ResponseMessage from fn_response(20,0)    
+end catch  
+end  
+GO
+/****** Object:  StoredProcedure [dbo].[usp_add_new_exception]    Script Date: 1/20/2025 9:44:08 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+create procedure [dbo].[usp_add_new_exception]
+(
+@Name varchar(100)='',
+@Line smallint=0,
+@Message varchar(max)=''
+)
+as
+begin
+insert into SqlException(ErrorProcedure,ErrorLine,ErrorMessage)values(@Name,@Line,@Message)
+end
+GO
+/****** Object:  StoredProcedure [dbo].[usp_add_new_flow]    Script Date: 1/20/2025 9:44:08 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+--usp_add_new_flow 60,10,'Assign Branch','DYNAMIC_FLOW.usp_assign_branch'
+CREATE procedure [dbo].[usp_add_new_flow]
+(
+@DbConnectionId smallint=0,
+@ButtonTypeId smallint =0,
+@Title varchar(100)='',
+@SqlScript varchar(100)=''
+)
+as
+begin
+declare @ResponseCode varchar(30), @ResponseMessage nvarchar(1000);
+select @ResponseCode=ResponseCode,@ResponseMessage=ResponseMessage from fn_validate_add_new_flow(@DbConnectionId,@ButtonTypeId,@Title,@SqlScript)
+if @ResponseCode='00'
+begin
+insert into Flow(DbConnectionId,ButtonTypeId,Title,SqlScript)values(@DbConnectionId,@ButtonTypeId,@Title,@SqlScript)
+end
+select @ResponseCode ResponseCode,@ResponseMessage ResponseMessage
+end
+GO
+/****** Object:  StoredProcedure [dbo].[usp_add_new_flow_property]    Script Date: 1/20/2025 9:44:08 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+--usp_add_new_flow_property 12,10,'Branch Label',1000,'','Branch',0,0,100,null,null,null,null,1,null
+CREATE procedure [dbo].[usp_add_new_flow_property]
+(
+@FlowId	smallint=0,
+@DataTypeId	smallint=0,
+@Title	varchar(100)='',
+@Position smallint=0,
+@ListScript	varchar(100)='',
+@DefaultValue	varchar(100)='',
+@IsRequired	bit=0,
+@IsPreProperty	bit=0,
+@ElementGroup	smallint=0,
+@ParentPropertyId	smallint=null,
+@ElementEventId	smallint=null,
+@Parameter varchar(100)=null,
+@AlwaysDefaultValue bit	=null,
+@IsVisible	bit=1,
+@ErrorMessage varchar(500)=''
+)
+as
+begin
+begin try
+declare @ResponseCode varchar(30),@ResponseMessage nvarchar(500);
+select @ResponseCode=ResponseCode,@ResponseMessage=ResponseMessage from fn_validate_add_new_flow_property(@FlowId,@DataTypeId,@Title,@Position,@ListScript,@DefaultValue,@IsRequired,@IsPreProperty,@ElementGroup,@ParentPropertyId,@Parameter,@ErrorMessage)
+if @ResponseCode='00'
+begin
+insert into FlowProperty(FlowId,DataTypeId,Title,Position,ListScript,DefaultValue,IsRequired,IsPreProperty,ElementGroup,ParentPropertyId,ElementEventId,Parameter,AlwaysDefaultValue,IsVisible,ErrorMessage)
+values
+(@FlowId,@DataTypeId,@Title,@Position,@ListScript,@DefaultValue,@IsRequired,@IsPreProperty,@ElementGroup,@ParentPropertyId,@ElementEventId,@Parameter,@AlwaysDefaultValue,@IsVisible,@ErrorMessage)
+end
+select @ResponseCode ResponseCode,@ResponseMessage ResponseMessage
+end try
+begin catch
+declare @Name varchar(100),@Line smallint,@Error varchar(max);
+SELECT 
+    @Name= ERROR_PROCEDURE(),
+    @Line= ERROR_LINE(),
+     @Error= ERROR_MESSAGE() ;
+	 exec usp_add_new_exception @Name,@Line,@Error;
+	 select ResponseCode,@Error ResponseMessage from fn_response(20,0)  
+
+end catch
+end
+GO
+/****** Object:  StoredProcedure [dbo].[usp_get_flow]    Script Date: 1/20/2025 9:44:08 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+--usp_get_flow 'RegisterProfile',0                    
+CREATE procedure [dbo].[usp_get_flow]                    
+(                    
+@Title varchar(100)='',                    
+@LanguageId tinyint=0                    
+)                    
+as                    
+begin                    
+declare @ResponseCode varchar(30),@ResponseDescription nvarchar(300),@ConnectionString varchar(1000),@Id bigint=0,@Url varchar(1000)='';                    
+select @ResponseCode=ResponseCode,@ResponseDescription=ResponseDescription,@ConnectionString=ConnectionString,@Id=Id from fn_validate_flow(@Title,@LanguageId)                    
+if @ResponseCode<>'00'                    
+begin                    
+select @ResponseCode ResponseCode,@ResponseDescription ResponseDescription                    
+select ''                  
+select ''                  
+end                    
+                    
+else                    
+begin                    
+select @ResponseCode ResponseCode,@ResponseDescription ResponseDescription             
+
+select f.Id,f.Title,@ConnectionString ConnectionString,f.SqlScript Script,bt.Title ButtonText,bt.Color ButtonColor  from Flow f          
+join ButtonType bt on bt.Id=f.ButtonTypeId          
+where f.Title=@Title      
+and f.IsDeleted=0 and bt.IsDeleted=0          
+  
+select fp.Id FlowPropertyId,fp.ElementGroup PropertyGroupId,dt.Id DataTypeId,ddt.Title DbDataType, dt.Title DataType,DefaultValue,IsRequired,IsPreProperty,IsPreload,ListScript,ParentPropertyId,ElementEventId,replace(Parameter,'@','')Parameter,  
+case when ElementEventId is not null then 1    
+else 0 end IsEvent,fp.IsVisible,fp.AlwaysDefaultValue,fp.ErrorMessage  
+from FlowProperty fp                  
+inner join DataType dt on fp.DataTypeId  = dt.Id  
+left join DbDataType DDT on DDT.Id=FP.DbDataTypeId  
+where FlowId=@Id and fp.IsDeleted=0 and dt.IsDeleted=0   
+order by fp.Position                    
+  
+end                    
+end 
+GO
+USE [master]
+GO
+ALTER DATABASE [DynamicFlow] SET  READ_WRITE 
+GO

@@ -1,0 +1,201 @@
+﻿@using DynamicFlow.BackOffice.Models.Generic
+@{
+	ViewData["Title"] = "Create Flow";
+	var dbConnections = ViewData["DbConnections"] as List<KeyValueGeneric> ?? new List<KeyValueGeneric>();
+	// var sqlScripts = ViewData["DbScripts"] as List<KeyValueGeneric> ?? new List<KeyValueGeneric>();
+	var buttons = ViewData["Buttons"] as List<KeyValueGeneric> ?? new List<KeyValueGeneric>();
+}
+<div class="container d-flex justify-content-center align-items-center">
+	<div class="w-25">
+		<div class="form-group">
+			<label for="flowNameId"><strong>Title</strong>&nbsp;<strong style="color:red;">*</strong></label>
+			<input type="text" class="form-control" id="flowNameId" placeholder="Enter unique flow name">
+			<small id="flowNameErrorId" class="text-danger" style="display: none;">Title is required.</small>
+
+		</div>
+		<div class="form-group padtop">
+			<label for="flowDescriptionId"><strong>Description</strong></label>
+			<input type="text" maxlength="400" class="form-control" id="flowDescriptionId" placeholder="Provide description">
+			<small id="flowDescriptionErrorId" class="text-danger" style="display: none;">Description is required.</small>
+
+		</div>
+		<div class="form-group padtop">
+			<label for="dbConnectionId"><strong>DB Connection</strong>&nbsp;<strong style="color:red;">*</strong></label>
+			<select class="form-control" id="dbConnectionId">
+				<option value="0">--Select--</option>
+				@foreach (var item in dbConnections)
+				{
+					<option value=@item.Key>@item.Value</option>
+				}
+			</select>
+			<small id="dbConnectionErrorId" class="text-danger" style="display: none;">DB Connection is required.</small>
+		</div>
+		<div class="form-group padtop" id="sqlScriptId" style="display:none">
+			<label for="procedureId"><strong>SQL Script</strong>&nbsp;<strong style="color:red;">*</strong></label>
+			<select class="form-control" id="procedureId">
+				<option value="0">--Select--</option>
+			</select>
+			<small id="sqlScriptErrorId" class="text-danger" style="display: none;">SQL Script is required.</small>
+
+		</div>
+		<div class="form-group padtop">
+			<label for="buttonTypeId"><strong>Button Type</strong>&nbsp;<strong style="color:red;">*</strong></label>
+			<select class="form-control" id="buttonTypeId">
+				<option value="0">--Select--</option>
+				@foreach (var item in buttons)
+				{
+					<option value=@item.Key>@item.Value</option>
+				}
+			</select>
+			<small id="buttonErrorId" class="text-danger" style="display: none;">Button Type is required.</small>
+		</div>
+		<div class="col-md-12 d-flex justify-content-end padtop">
+			<button type="button" class="btn btn-secondary" style="margin-right:2px; background-color:#a58d63 !important;border-color:#a58d63 !important">Cancel</button>
+			<button type="button" class="btn btn-primary ml-6" id="saveButtonId" style="background-color:#a58d63 !important;border-color:#a58d63 !important">Save</button>
+		</div>
+	</div>
+</div>
+<script>
+	document.addEventListener("DOMContentLoaded", function () {
+		document.getElementById("saveButtonId").addEventListener("click", function () {
+			const flowNameError = document.getElementById("flowNameErrorId");
+			// const flowDescriptionError = document.getElementById("flowDescriptionErrorId");
+			const dbConnectionError = document.getElementById("dbConnectionErrorId");
+			const sqlScriptError = document.getElementById("sqlScriptErrorId");
+			const buttonError = document.getElementById("buttonErrorId");
+			let isValid = true;
+			if (document.getElementById("flowNameId").value.trim() === ""){
+				flowNameError.style.display = "block";
+				isValid = false;
+			}
+			else {
+				flowNameError.style.display = "none";
+			 }
+			// 	if (document.getElementById("flowDescriptionId").value.trim() === ""){
+			// 	flowDescriptionError.style.display = "block";
+			// 	isValid = false;
+			// }
+			// else {
+			// 	flowDescriptionError.style.display = "none";
+			// }
+			if (document.getElementById("dbConnectionId").value.trim() === "0"){
+				dbConnectionError.style.display = "block";
+				isValid = false;
+			}
+			else {
+				dbConnectionError.style.display = "none";
+			}
+			if (document.getElementById("procedureId").value.trim() === "0"){
+				sqlScriptError.style.display = "block";
+				isValid = false;
+			}
+			else {
+				sqlScriptError.style.display = "none";
+			}
+			if (document.getElementById("buttonTypeId").value.trim() === "0"){
+				buttonError.style.display = "block";
+				isValid = false;
+			}
+			else {
+				buttonError.style.display = "none";
+			}
+			if (isValid) {
+				var flowName=document.getElementById("flowNameId").value.trim();
+				var flowDescription=document.getElementById("flowDescriptionId").value.trim();
+				var dbConnection= document.getElementById("dbConnectionId").value.trim();
+			var selectedsqlScript = document.getElementById("procedureId");
+			var sqlScript = selectedsqlScript.options[selectedsqlScript.selectedIndex].text;
+			var button= document.getElementById("buttonTypeId").value.trim();
+			var token="";
+			const data = {
+				Title: flowName,
+				Description:flowDescription,
+				ConnectionId: dbConnection,
+				Procedure: sqlScript,
+				ButtonId: button
+			};
+			fetch("/Flow/CreateNewFlow", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					"X-CSRF-TOKEN": token
+				},
+				body: JSON.stringify(data)
+			}).then(response => {
+				if (!response.ok) {
+					throw new Error(result.message);
+				}
+				return response.json();
+			}).then(result => {
+				if (result.success) {
+					alert(result.message);
+					location.reload();
+				}
+				else {
+					alert(result.message);
+				}
+			}).catch(error => {
+				console.error("Error:", error);
+				alert("An error occurred while saving data.");
+			});
+			}
+			});
+			});
+
+			document.getElementById("dbConnectionId").addEventListener("change", function () {
+			const selectedValue = this.value;
+			const scripError = document.getElementById("sqlScriptErrorId");
+			scripError.style.display = "none";
+
+			if (selectedValue != "0"){
+
+				const procedure = document.getElementById("sqlScriptId");
+				var connection=document.getElementById("dbConnectionId").value.trim();
+
+				var token="";
+				const data = {
+					Id: connection
+				};
+				fetch("/Flow/GetAllProcedure", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"X-CSRF-TOKEN": token
+					},
+					body: JSON.stringify(data)
+				}).then(response => {
+					if (!response.ok) {
+						throw new Error("Failed to save the data.");
+					}
+					return response.json();
+				}).then(result => {
+					if (result.success) {
+						procedure.style.display = "block";
+						const procedureDropdown = document.getElementById("procedureId");
+						procedureDropdown.innerHTML="";
+						const defaultOption = document.createElement("option");
+						defaultOption.value = "0";
+						defaultOption.textContent = "--Select--";
+						procedureDropdown.appendChild(defaultOption);
+						result.data.forEach(item => {
+							const option = document.createElement("option");
+							option.value = item.key;
+							option.textContent = item.value;
+							procedureDropdown.appendChild(option);
+						});
+					}
+					else {
+						alert(result.message);
+					}
+				}).catch(error => {
+					console.error("Error:", error);
+					alert("An error occurred while saving data.");
+				});
+
+			} else {
+				procedure.style.display = "none";
+				scripError.style.display = "none";
+			}
+		});
+
+</script>
